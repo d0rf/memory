@@ -55,10 +55,12 @@ jobs:
       - name: SSH to deploy
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_USER: clementcoiffierabeille
+          SERVER_IP: localhost
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
-          ssh -o StrictHostKeyChecking=no -i private_key.pem clementcoiffierabeille@your_server_ip "
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP "
             docker pull clem33950/memory &&
             docker run -d -p 80:80 clem33950/memory
           "
