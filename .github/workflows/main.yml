@@ -70,15 +70,14 @@ jobs:
             
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-            # Vérifier si le conteneur existe avant de tenter de l'arrêter ou de le supprimer
+            # Vérifiez si le conteneur existe avant de tenter de l'arrêter ou de le supprimer
             if [ "$(docker ps -q -f name=nginx-memory)" ]; then
-                docker stop nginx-memory
-                docker rm nginx-memory
+                docker-compose down
             fi
 
             # Assurez-vous que le port 80 est libre
             if ! nc -z 127.0.0.1 80; then
-                docker run --name nginx-memory -p 80:80 -d ${{ secrets.DOCKERHUB_USERNAME }}/memory:latest
+                docker-compose up -d
             else
                 echo "Le port 80 est déjà utilisé. Veuillez libérer le port avant de lancer le conteneur."
             fi
