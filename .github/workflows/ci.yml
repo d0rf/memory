@@ -64,10 +64,23 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
           ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USERNAME }}@127.0.0.1 << EOF
+            # Connexion à Docker sans utiliser le trousseau de clés
+            mkdir -p ~/.docker
+            echo '{"credHelpers": {}}' > ~/.docker/config.json
+            
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/memory:latest
-            docker stop nginx-memory || true
-            docker rm nginx-memory || true
-            docker run --name nginx-memory -p 80:80 -d ${{ secrets.DOCKERHUB_USERNAME }}/memory:latest
+
+            # Vérifier si le conteneur existe avant de tenter de l'arrêter ou de le supprimer
+            if [ "$(docker ps -q -f name=nginx-memory)" ]; then
+                docker stop nginx-memory
+                docker rm nginx-memory
+            fi
+
+            # Assurez-vous que le port 80 est libre
+            if ! nc -z 127.0.0.1 80; then
+                docker run --name nginx-memory -p 80:80 -d ${{ secrets.DOCKERHUB_USERNAME }}/memory:latest
+            else
+                echo "Le port 80 est déjà utilisé. Veuillez libérer le port avant de lancer le conteneur."
+            fi
           EOF
 
