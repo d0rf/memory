@@ -19,7 +19,7 @@ jobs:
           for file in $(find . -name "*.jpg"); do
             if ! file "$file" | grep -q "JPEG image data"; then
               echo "File $file is corrupted. Replacing it."
-              cp /Users/clementcoiffierabeille/memory/imgBackup/backup.jpg" "$file"  # Chemin vers un JPEG de remplacement
+              cp /Users/clementcoiffierabeille/memory/imgBackup/backup.jpg "$file"  # Chemin vers un JPEG de remplacement
             fi
           done
 
