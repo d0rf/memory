@@ -1,4 +1,4 @@
-name: CI Memory
+name: CI Workflow
 
 on:
   push:
@@ -7,39 +7,59 @@ on:
 
 jobs:
   test-memory:
-    runs-on: self-hosted
+    runs-on: [self-hosted]
+    
     steps:
-      - uses: actions/checkout@v2
-      - name: Run file command on jpg files
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Find and test JPEG files
         run: |
-          find . -name "*.jpg" -exec file {} \;
+          # Remplacer les fichiers corrompus
+          for file in $(find . -name "*.jpg"); do
+            if ! file "$file" | grep -q "JPEG image data"; then
+              echo "File $file is corrupted. Replacing it."
+              cp /Users/clementcoiffierabeille/memory/imgBackup "$file"  # Chemin vers un JPEG de remplacement
+            fi
+          done
 
   build-memory:
-    runs-on: self-hosted
+    runs-on: [self-hosted]
     needs: test-memory
+    
     steps:
-      - uses: actions/checkout@v2
-      - name: Build Docker Image
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
         run: |
           docker build -t clem33950/memory .
 
   push-memory:
-    runs-on: self-hosted
+    runs-on: [self-hosted]
     needs: build-memory
+    
     steps:
-      - name: Login to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-      - name: Push Docker Image
-        run: docker push clem33950/memory
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u clem33950 --password-stdin
+        
+      - name: Push Docker image
+        run: |
+          docker push clem33950/memory
 
   deploy-memory:
-    runs-on: self-hosted
+    runs-on: [self-hosted]
     needs: push-memory
+    
     steps:
-      - name: SSH into server and deploy
+      - name: SSH to deploy
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          ssh -i ~/.ssh/id_rsa user@hostname <<EOF
-            docker pull clem33950/memory
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem clementcoiffierabeille@your_server_ip "
+            docker pull clem33950/memory &&
             docker run -d -p 80:80 clem33950/memory
-          EOF
+          "
 
