@@ -33,7 +33,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/memory .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/memory:latest .
 
   push-memory:
     needs: build-memory
