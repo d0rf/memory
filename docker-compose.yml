@@ -1,7 +1,11 @@
-version: '3'
 services:
-  memory:
+  nginx-memory:
     image: clem33950/memory
+    container_name: nginx-memory
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "80:80"
+    restart: always
 
