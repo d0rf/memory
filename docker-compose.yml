@@ -1,0 +1,7 @@
+version: '3'
+services:
+  memory:
+    image: clem33950/memory
+    ports:
+      - "80:80"
+

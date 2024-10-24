@@ -1,0 +1,45 @@
+name: CI Memory
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  test-memory:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run file command on jpg files
+        run: |
+          find . -name "*.jpg" -exec file {} \;
+
+  build-memory:
+    runs-on: self-hosted
+    needs: test-memory
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker Image
+        run: |
+          docker build -t clem33950/memory .
+
+  push-memory:
+    runs-on: self-hosted
+    needs: build-memory
+    steps:
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - name: Push Docker Image
+        run: docker push clem33950/memory
+
+  deploy-memory:
+    runs-on: self-hosted
+    needs: push-memory
+    steps:
+      - name: SSH into server and deploy
+        run: |
+          ssh -i ~/.ssh/id_rsa user@hostname <<EOF
+            docker pull clem33950/memory
+            docker run -d -p 80:80 clem33950/memory
+          EOF
+
