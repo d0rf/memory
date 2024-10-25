@@ -1,0 +1,7 @@
+version: '3'
+services:
+  memory-app:
+    image: ghcr.io/fasjupy/memory
+    ports:
+      - "80:80"
+
