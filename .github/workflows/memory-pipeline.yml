@@ -67,7 +67,7 @@ jobs:
 
       - name: deploiement du container sur un server
         env:
-          DOCKER_HOST: "ssh://your_user@your_host"
+          DOCKER_HOST: "ssh://localhost@172.23.28.140"
         run: |
           docker pull loanlebrave/memory
           docker stop memory || true && docker rm memory || true
