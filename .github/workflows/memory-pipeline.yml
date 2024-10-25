@@ -71,4 +71,4 @@ jobs:
         run: |
           docker pull loanlebrave/memory
           docker stop memory || true && docker rm memory || true
-          docker run -d -p 80:80 --name memory loanlebrave/memory
+          docker run -d -p 80:80 --name memory loanlebrave/memory 
