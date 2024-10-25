@@ -55,3 +55,20 @@ jobs:
       - name: Push Docker image to DockerHub
         run: |
           docker push loanlebrave/memory
+
+  deploy-memory:
+    runs-on: self-hosted
+    needs: push-memory
+    steps:
+      - name: le ssh
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: deploiement du container sur un server
+        env:
+          DOCKER_HOST: "ssh://your_user@your_host"
+        run: |
+          docker pull loanlebrave/memory
+          docker stop memory || true && docker rm memory || true
+          docker run -d -p 80:80 --name memory loanlebrave/memory
