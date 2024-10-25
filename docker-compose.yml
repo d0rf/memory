@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  memory:
+    image: loanlebrave/memory
+    ports:
+      - "80:80"  #port 80 hote vers port 80 du conteneur
+    restart: unless-stopped  #redemarre le conteneur si besoin (je sais pas trop si c est utile dans notre cas mais j'ai vu ca)
