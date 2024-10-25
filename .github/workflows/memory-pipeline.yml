@@ -69,6 +69,9 @@ jobs:
         env:
           DOCKER_HOST: "ssh://localhost@172.23.28.140"
         run: |
-          docker pull loanlebrave/memory
-          docker stop memory || true && docker rm memory || true
-          docker run -d -p 80:80 --name memory loanlebrave/memory 
+          # pour etre sur d avoir le plus récent
+          git pull origin develop
+
+          # demarrage avec docker compose en arretant les anciens
+          docker-compose -f /home/localhost/tpnote/memory/docker-compose.yml down
+          docker-compose -f /home/localhost/tpnote/memory/docker-compose.yml up -d
