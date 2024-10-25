@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  memory:
+    image: gbb1402/memory:latest
+    ports:
+      - "80:80"

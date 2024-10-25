@@ -1,0 +1,78 @@
+name: Memory Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  test-memory:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install file command
+        run: sudo apt-get install file
+
+      - name: Check JPEG files
+        run: |
+          for img in $(find . -name "*.jpg"); do
+            file "$img";
+          done
+
+  build-memory:
+    needs: test-memory
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t gbb1402/memory:latest .
+
+      - name: Save Docker image to file
+        run: docker save gbb1402/memory:latest -o memory_image.tar
+
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v3
+        with:
+          name: memory_image
+          path: memory_image.tar
+
+  push-memory:
+    needs: build-memory
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: memory_image
+
+      - name: Load Docker image
+        run: docker load -i memory_image.tar
+
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "gbb1402" --password-stdin
+
+      - name: Tag Docker image
+        run: docker tag gbb1402/memory:latest gbb1402/memory:latest
+
+      - name: Push Docker image
+        run: docker push gbb1402/memory:latest
+
+  deploy-memory:
+    needs: push-memory  # Ce job dépend du push de l'image sur Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connexion SSH et déploiement
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull gbb1402/memory:latest
+            docker stop memory-container || true  # Stoppe le conteneur existant s'il y en a un
+            docker rm memory-container || true    # Supprime le conteneur existant s'il y en a un
+            docker run -d --name memory-container -p 80:80 gbb1402/memory:latest
+
