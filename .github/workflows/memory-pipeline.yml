@@ -1,0 +1,19 @@
+name: Memory Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  test-memory:
+    runs-on: self-hosted  # Spécifie que le job doit s'exécuter sur un runner self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2  # Récupère le code du repo
+
+      - name: Test des jpg
+        run: |
+          find . -type f -name '*.jpg' | while read -r file; do
+            file "$file"
+          done
